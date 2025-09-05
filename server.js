@@ -30,6 +30,35 @@ app.get('/spotify-token', async (req, res) => {
     res.status(500).json({ error: 'Failed to get token' });
   }
 });
+const fs = require("fs");
+const path = require("path");
+
+// Store feedback in feedback.json
+const feedbackFile = path.join(__dirname, "feedback.json");
+
+app.post("/feedback", (req, res) => {
+  const { name, message } = req.body;
+  if (!name || !message) {
+    return res.status(400).json({ error: "Name and feedback are required" });
+  }
+
+  const feedbackEntry = {
+    name,
+    message,
+    date: new Date().toISOString()
+  };
+
+  let feedbackData = [];
+  if (fs.existsSync(feedbackFile)) {
+    feedbackData = JSON.parse(fs.readFileSync(feedbackFile, "utf-8"));
+  }
+
+  feedbackData.push(feedbackEntry);
+  fs.writeFileSync(feedbackFile, JSON.stringify(feedbackData, null, 2));
+
+  res.json({ success: true });
+});
+
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);

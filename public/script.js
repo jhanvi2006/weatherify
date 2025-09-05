@@ -276,3 +276,29 @@ function mapWeatherToSearchTerm(weather) {
 document.addEventListener("DOMContentLoaded", () => {
   document.body.style.backgroundImage = "url('images/default.jpg')";
 });
+
+document.getElementById("feedback-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const name = document.getElementById("name").value.trim();
+  const message = document.getElementById("message").value.trim();
+  const responseEl = document.getElementById("feedback-response");
+
+  try {
+    const res = await fetch("/feedback", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, message })
+    });
+
+    const data = await res.json();
+    if (res.ok) {
+      responseEl.innerText = "✅ Thanks for your feedback!";
+      document.getElementById("feedback-form").reset();
+    } else {
+      responseEl.innerText = "❌ " + data.error;
+    }
+  } catch (err) {
+    responseEl.innerText = "❌ Something went wrong. Try again.";
+  }
+});
