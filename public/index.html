@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Weatherify</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div id="main-container" class="single-column">
+      <!-- Weather Column -->
+      <div class="weather-column">
+        <p>Get ready to experience Weatherify!</p>
+        <h1>Explore the sound of weather</h1>
+        <input
+          type="text"
+          id="location"
+          placeholder="Enter your city, state, or country"
+        />
+        <button onclick="getWeather()">GO</button>
+
+        <div id="weather-icon"></div>
+        <div id="weather-info"></div>
+
+        <button
+          id="next-playlist-btn"
+          style="display: none"
+          onclick="showNextPlaylist()"
+        >
+          🎵 Try Another Playlist
+        </button>
+
+        <div id="loading-spinner" style="display: none">🔄 Loading...</div>
+      </div>
+
+      <!-- Spotify Column (Initially hidden) -->
+      <div class="spotify-column" id="spotify-column">
+        <div id="result"></div>
+      </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.10.2/lottie.min.js"></script>
+  </body>
+</html>
