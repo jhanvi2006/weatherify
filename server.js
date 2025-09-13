@@ -1,106 +1,51 @@
-const express = require("express");
-const axios = require("axios");
-const cors = require("cors");
-const { Pool } = require("pg");
-require("dotenv").config();
+require('dotenv').config();
+const express = require('express');
+const mongoose = require('mongoose');
+const bodyParser = require('body-parser');
+const cors = require('cors');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
-
-// Middleware
 app.use(cors());
-app.use(express.static("public"));
-app.use(express.json());
+app.use(bodyParser.json());
 
-// =======================
-// PostgreSQL Setup
-// =======================
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : false
+app.use(express.static('public'));
+
+// ✅ Replace with your MongoDB Atlas connection string
+mongoose.connect(process.env.MONGODB_URI)
+  .then(() => console.log("✅ MongoDB connected!"))
+  .catch(err => console.log("❌ MongoDB connection error:", err));
+
+// Define schema for feedback
+const feedbackSchema = new mongoose.Schema({
+  name: String,
+  email: String,
+  message: String,
+  createdAt: { type: Date, default: Date.now }
 });
 
-// Create feedback table if not exists
-(async () => {
+// Create model
+const Feedback = mongoose.model('Feedback', feedbackSchema);
+
+// Route to submit feedback
+app.post('/feedback', async (req, res) => {
   try {
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS feedback (
-        id SERIAL PRIMARY KEY,
-        name TEXT NOT NULL,
-        message TEXT NOT NULL,
-        created_at TIMESTAMP DEFAULT NOW()
-      );
-    `);
-    console.log("✅ Feedback table ready");
+    const feedback = new Feedback(req.body);
+    await feedback.save();
+    res.status(201).send({ message: 'Feedback submitted successfully!' });
   } catch (err) {
-    console.error("❌ Error creating feedback table:", err);
+    res.status(500).send({ error: 'Failed to submit feedback' });
   }
-})();
+});
 
-// =======================
-// Spotify Token Endpoint
-// =======================
-app.get("/spotify-token", async (req, res) => {
-  const clientId = process.env.SPOTIFY_CLIENT_ID;
-  const clientSecret = process.env.SPOTIFY_CLIENT_SECRET;
-
+// Route to get all feedbacks
+app.get('/feedbacks', async (req, res) => {
   try {
-    const authResponse = await axios.post(
-      "https://accounts.spotify.com/api/token",
-      new URLSearchParams({ grant_type: "client_credentials" }),
-      {
-        headers: {
-          Authorization:
-            "Basic " + Buffer.from(`${clientId}:${clientSecret}`).toString("base64"),
-          "Content-Type": "application/x-www-form-urlencoded"
-        }
-      }
-    );
-
-    res.json({ access_token: authResponse.data.access_token });
+    const feedbacks = await Feedback.find().sort({ createdAt: -1 });
+    res.json(feedbacks);
   } catch (err) {
-    console.error("Spotify token error:", err.message);
-    res.status(500).json({ error: "Failed to get token" });
+    res.status(500).send({ error: 'Failed to fetch feedbacks' });
   }
 });
 
-// =======================
-// Feedback Endpoints
-// =======================
-
-// Save feedback
-app.post("/feedback", async (req, res) => {
-  const { name, message } = req.body;
-  if (!name || !message) {
-    return res.status(400).json({ error: "Name and feedback are required" });
-  }
-
-  try {
-    await pool.query("INSERT INTO feedback (name, message) VALUES ($1, $2)", [
-      name,
-      message
-    ]);
-    res.json({ success: true });
-  } catch (err) {
-    console.error("❌ Error saving feedback:", err);
-    res.status(500).json({ error: "Failed to save feedback" });
-  }
-});
-
-// View all feedback (for you as admin, not public)
-app.get("/feedback", async (req, res) => {
-  try {
-    const result = await pool.query("SELECT * FROM feedback ORDER BY created_at DESC");
-    res.json(result.rows);
-  } catch (err) {
-    console.error("❌ Error fetching feedback:", err);
-    res.status(500).json({ error: "Failed to fetch feedback" });
-  }
-});
-
-// =======================
-// Start Server
-// =======================
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
-});
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
