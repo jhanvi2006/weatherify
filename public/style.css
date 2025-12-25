@@ -1,31 +1,39 @@
-/* Reset + full-screen layout */
+/* =========================
+   RESET
+   ========================= */
 * {
-  margin: 1;
+  margin: 0;               /* ✅ FIXED */
   padding: 0;
   box-sizing: border-box;
 }
 
+/* =========================
+   BODY
+   ========================= */
 body {
-  height: 100vh;
+  min-height: 100vh;       /* ✅ FIXED */
   width: 100%;
   font-family: 'Segoe UI', sans-serif;
+  background-image: url('images/default.jpg');
   background-size: cover;
   background-position: center;
-  background-image: url('images/default.jpg');
   background-repeat: no-repeat;
   background-attachment: fixed;
+
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;   /* ⬅️ Start from top */
   align-items: center;
-  transition: background-image 1s ease-in-out, opacity 0.8s ease-in-out;
+  justify-content: flex-start;
+
   color: white;
   text-align: center;
-  padding: 2rem 1rem 1rem;       /* ⬅️ Add top padding */
+  padding: 2rem 1rem 1rem;
+  transition: background-image 1s ease-in-out, opacity 0.8s ease-in-out;
 }
 
-
-/* Headings */
+/* =========================
+   HEADINGS
+   ========================= */
 h1 {
   font-size: 3rem;
   font-weight: 900;
@@ -34,7 +42,6 @@ h1 {
   margin-bottom: 1rem;
 }
 
-
 p {
   font-size: 1.1rem;
   text-transform: uppercase;
@@ -42,7 +49,9 @@ p {
   margin-bottom: 1rem;
 }
 
-/* Input + Button */
+/* =========================
+   INPUT & BUTTON
+   ========================= */
 input {
   padding: 12px 20px;
   width: 300px;
@@ -71,32 +80,83 @@ button:hover {
   transform: scale(1.05);
 }
 
-/* Weather result */
+/* =========================
+   MAIN CONTAINER
+   ========================= */
+#main-container {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 2rem;
+  max-width: 1300px;
+  width: 100%;
+  margin: 0 auto;          /* ✅ FIXED */
+  padding: 2rem;
+  transition: all 0.5s ease;
+}
 
+#main-container.single-column {
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+}
 
+/* =========================
+   WEATHER & SPOTIFY COLUMNS
+   ========================= */
+.weather-column,
+.spotify-column {
+  background-color: rgba(0, 0, 0, 0.45);
+  padding: 2rem;
+  border-radius: 15px;
+  backdrop-filter: blur(4px);
+  width: 100%;
+  max-width: 600px;
+  min-height: 400px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.spotify-column {
+  visibility: hidden;
+}
+
+.spotify-column.visible {
+  visibility: visible;
+}
+
+/* =========================
+   WEATHER RESULT
+   ========================= */
 #result {
   max-width: 90%;
   width: 500px;
   margin-top: 1rem;
 }
 
-#result h3 {
-  font-size: 1.75rem;
-  margin-bottom: 1rem;
-  margin-left: 9rem;
-}
+#result h3,
 #result h4 {
-  font-size: 1.25rem;
-  margin-bottom: 0.5rem;
-  margin-left: 9rem;
+  margin-left: 0;          /* ✅ FIXED */
 }
 
+/* =========================
+   IFRAME
+   ========================= */
 iframe {
+  width: 100%;
+  height: 500px;
   border-radius: 12px;
-  width: 129%;
+  border: none;
   margin-top: 1rem;
 }
 
+/* =========================
+   LOADING
+   ========================= */
 #loading-spinner {
   margin-top: 1rem;
   font-size: 1rem;
@@ -108,105 +168,18 @@ iframe {
   50% { opacity: 1; }
 }
 
-/* Responsive */
-@media (max-width: 600px) {
-  h1 {
-    font-size: 2.2rem;
-  }
-
-  input {
-    width: 90%;
-  }
-
-  button {
-    width: auto;
-    padding: 10px 24px;
-  }
-  .overlay {
-  padding: 1rem;
-}
-
-}
-.overlay {
-  background-color: rgba(0, 0, 0, 0.45); /* dark transparent layer */
-  padding: 2rem;
-  border-radius: 15px;
-  backdrop-filter: blur(4px); /* optional: blur background behind overlay */
-  width: 100%;
-  max-width: 700px;
-  position: sticky;
-  text-align: center;
-}
-#main-container {
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  gap: 2rem;
-  max-width: 1300px;
-  margin: auto;
-  padding: 2rem;
-  transition: all 0.5s ease;
-}
-
-#main-container.single-column {
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  flex-direction: column;
-}
-
-.weather-column, .spotify-column {
-  flex: 1;
-  background-color: rgba(0, 0, 0, 0.45);
-  padding: 2rem;
-  border-radius: 15px;
-  backdrop-filter: blur(4px);
-  width: 100%;
-  max-width: 600px; /* ✅ same width for both */
-  min-height: 400px; /* ✅ ensures they look balanced */
-  box-shadow: 0 0 20px rgba(0,0,0,0.2);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start; /* keep content aligned */
-}
-
-
-.weather-column {
-  text-align: center;
-  color: white;
-}
-
-.spotify-column {
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-}
-.spotify-column {
-  visibility: hidden;
-}
-.spotify-column.visible {
-  visibility: visible;
-}
-
-
-iframe {
-  width: 100%;
-  height: 500px;
-  border-radius: 12px;
-  margin-top: 1rem;
-}
-
-
+/* =========================
+   FEEDBACK SECTION
+   ========================= */
 .feedback-column {
-  flex: 1;
   background-color: rgba(0, 0, 0, 0.45);
   padding: 2rem;
   border-radius: 15px;
   backdrop-filter: blur(4px);
   color: white;
   max-width: 600px;
-  margin-top: 0rem;
+  width: 100%;
+  margin: 10px auto 0;     /* ✅ FIXED */
 }
 
 .feedback-column h2 {
@@ -243,4 +216,55 @@ iframe {
 #feedback-response {
   margin-top: 1rem;
   font-weight: bold;
+}
+
+/* =========================
+   MOBILE RESPONSIVENESS
+   ========================= */
+@media (max-width: 768px) {
+
+  body {
+    padding: 15px;
+  }
+
+  #main-container {
+    flex-direction: column;
+    gap: 20px;
+    padding: 0;
+  }
+
+  .weather-column,
+  .spotify-column,
+  .feedback-column {
+    max-width: 100%;
+    padding: 20px;
+    border-radius: 16px;
+  }
+
+  h1 {
+    font-size: 1.8rem;
+  }
+
+  p {
+    font-size: 0.95rem;
+  }
+
+  input {
+    width: 100%;
+    font-size: 1rem;
+  }
+
+  button {
+    width: 100%;
+    padding: 14px;
+    font-size: 1rem;
+  }
+
+  iframe {
+    height: 380px;
+  }
+
+  textarea {
+    font-size: 1rem;
+  }
 }

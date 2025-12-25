@@ -10,6 +10,90 @@ app.use(bodyParser.json());
 
 app.use(express.static('public'));
 
+const axios = require('axios');
+
+/* 🔐 Spotify Token Route */
+app.get('/spotify-token', async (req, res) => {
+  try {
+    const auth = Buffer.from(
+      `${process.env.SPOTIFY_CLIENT_ID}:${process.env.SPOTIFY_CLIENT_SECRET}`
+    ).toString('base64');
+
+    const response = await axios.post(
+      'https://accounts.spotify.com/api/token',
+      'grant_type=client_credentials',
+      {
+        headers: {
+          Authorization: `Basic ${auth}`,
+          'Content-Type': 'application/x-www-form-urlencoded'
+        }
+      }
+    );
+
+    res.json(response.data); // contains access_token
+  } catch (error) {
+    console.error('Spotify token error:', error.response?.data || error.message);
+    res.status(500).json({ error: 'Failed to get Spotify token' });
+  }
+});
+
+
+
+/* 🌦 Weather Proxy Route */
+app.get('/weather', async (req, res) => {
+  try {
+    const location = req.query.q;
+    if (!location) {
+      return res.status(400).json({ error: 'Location is required' });
+    }
+
+    // Step 1: Geocoding
+    const geoRes = await axios.get(
+      'https://api.openweathermap.org/geo/1.0/direct',
+      {
+        params: {
+          q: location,
+          limit: 1,
+          appid: process.env.OPENWEATHER_API_KEY
+        }
+      }
+    );
+
+    if (!geoRes.data.length) {
+      return res.status(404).json({ error: 'Location not found' });
+    }
+
+    const { lat, lon, name, country, state } = geoRes.data[0];
+
+    // Step 2: Weather data
+    const weatherRes = await axios.get(
+      'https://api.openweathermap.org/data/2.5/weather',
+      {
+        params: {
+          lat,
+          lon,
+          units: 'metric',
+          appid: process.env.OPENWEATHER_API_KEY
+        }
+      }
+    );
+
+    res.json({
+      location: `${name}${state ? ', ' + state : ''}, ${country}`,
+      weather: weatherRes.data.weather[0].main,
+      temp: weatherRes.data.main.temp,
+      countryCode: weatherRes.data.sys.country,
+      city: name,
+      state
+    });
+
+  } catch (err) {
+    console.error('Weather API Error:', err.message);
+    res.status(500).json({ error: 'Failed to fetch weather data' });
+  }
+});
+
+
 // ✅ Replace with your MongoDB Atlas connection string
 mongoose.connect(process.env.MONGODB_URI)
   .then(() => console.log("✅ MongoDB connected!"))
