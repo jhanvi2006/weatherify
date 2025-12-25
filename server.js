@@ -1,18 +1,21 @@
 require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
-const bodyParser = require('body-parser');
 const cors = require('cors');
-
-const app = express();
-app.use(cors());
-app.use(bodyParser.json());
-
-app.use(express.static('public'));
-
 const axios = require('axios');
 
-/* 🔐 Spotify Token Route */
+const app = express();
+
+/* =========================
+   MIDDLEWARE
+   ========================= */
+app.use(cors());
+app.use(express.json());           // ✅ FIXED (IMPORTANT)
+app.use(express.static('public')); // serve frontend
+
+/* =========================
+   SPOTIFY TOKEN ROUTE
+   ========================= */
 app.get('/spotify-token', async (req, res) => {
   try {
     const auth = Buffer.from(
@@ -30,16 +33,16 @@ app.get('/spotify-token', async (req, res) => {
       }
     );
 
-    res.json(response.data); // contains access_token
+    res.json(response.data);
   } catch (error) {
     console.error('Spotify token error:', error.response?.data || error.message);
     res.status(500).json({ error: 'Failed to get Spotify token' });
   }
 });
 
-
-
-/* 🌦 Weather Proxy Route */
+/* =========================
+   WEATHER ROUTE
+   ========================= */
 app.get('/weather', async (req, res) => {
   try {
     const location = req.query.q;
@@ -47,7 +50,7 @@ app.get('/weather', async (req, res) => {
       return res.status(400).json({ error: 'Location is required' });
     }
 
-    // Step 1: Geocoding
+    // Geocoding
     const geoRes = await axios.get(
       'https://api.openweathermap.org/geo/1.0/direct',
       {
@@ -65,7 +68,7 @@ app.get('/weather', async (req, res) => {
 
     const { lat, lon, name, country, state } = geoRes.data[0];
 
-    // Step 2: Weather data
+    // Weather data
     const weatherRes = await axios.get(
       'https://api.openweathermap.org/data/2.5/weather',
       {
@@ -93,43 +96,39 @@ app.get('/weather', async (req, res) => {
   }
 });
 
-
-// ✅ Replace with your MongoDB Atlas connection string
+/* =========================
+   MONGODB
+   ========================= */
 mongoose.connect(process.env.MONGODB_URI)
-  .then(() => console.log("✅ MongoDB connected!"))
-  .catch(err => console.log("❌ MongoDB connection error:", err));
+  .then(() => console.log('✅ MongoDB connected'))
+  .catch(err => console.error('❌ MongoDB error:', err));
 
-// Define schema for feedback
-const feedbackSchema = new mongoose.Schema({
-  name: String,
-  email: String,
-  message: String,
-  createdAt: { type: Date, default: Date.now }
-});
+const Feedback = mongoose.model(
+  'Feedback',
+  new mongoose.Schema({
+    name: String,
+    message: String,
+    createdAt: { type: Date, default: Date.now }
+  })
+);
 
-// Create model
-const Feedback = mongoose.model('Feedback', feedbackSchema);
-
-// Route to submit feedback
+/* =========================
+   FEEDBACK ROUTE
+   ========================= */
 app.post('/feedback', async (req, res) => {
   try {
     const feedback = new Feedback(req.body);
     await feedback.save();
-    res.status(201).send({ message: 'Feedback submitted successfully!' });
-  } catch (err) {
-    res.status(500).send({ error: 'Failed to submit feedback' });
+    res.status(201).json({ message: 'Feedback submitted successfully!' });
+  } catch {
+    res.status(500).json({ error: 'Failed to submit feedback' });
   }
 });
 
-// Route to get all feedbacks
-app.get('/feedbacks', async (req, res) => {
-  try {
-    const feedbacks = await Feedback.find().sort({ createdAt: -1 });
-    res.json(feedbacks);
-  } catch (err) {
-    res.status(500).send({ error: 'Failed to fetch feedbacks' });
-  }
-});
-
+/* =========================
+   SERVER START
+   ========================= */
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+});
